@@ -1,0 +1,26 @@
+{
+  "name": "nodejs-file-manager",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lexmil/nodejs-file-manager.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "engines": {
+    "node": ">=22.14.0"
+  },
+  "bugs": {
+    "url": "https://github.com/lexmil/nodejs-file-manager/issues"
+  },
+  "homepage": "https://github.com/lexmil/nodejs-file-manager#readme"
+}
