@@ -1,20 +1,27 @@
 import { readdir, stat } from "node:fs/promises";
-import process from "node:process";
 import path from "node:path";
 
-export const runLs = async (dirPath) => {
+export const runLs = async (pathname) => {
   try {
-    console.log("Listing files...", dirPath);
-    const files = await readdir(dirPath);
+    const files = await readdir(pathname);
+
     const filesInfo = await Promise.all(
       files.map(async (file) => {
-        const stats = await stat(path.join(process.cwd(), file));
+        const stats = await stat(path.join(pathname, file));
+
         return {
           name: file,
           type: stats.isDirectory() ? "directory" : "file",
         };
       }),
     );
+
+    filesInfo.sort((a, b) => {
+      if (a.type !== b.type) {
+        return a.type === "directory" ? -1 : 1;
+      }
+      return a.name.localeCompare(b.name);
+    });
 
     console.table(filesInfo);
   } catch (err) {

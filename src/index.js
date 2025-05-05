@@ -1,8 +1,9 @@
 import os from "node:os";
-import path from "node:path";
 import process from "node:process";
 import readline from "node:readline";
-import { readdir, stat } from "node:fs/promises";
+
+import { printCurrentDirectory } from "./utils/path.js";
+import { drawBox } from "./utils/box.js";
 
 import {
   getOsEOL,
@@ -12,19 +13,28 @@ import {
   getOsArchitecture,
 } from "./operations/os.js";
 
-import { printCurrentDirectory } from "./utils/path.js";
-import { drawBox } from "./utils/box.js";
-import { getHash } from "./operations/hash.js";
-import { runLs } from "./operations/ls.js";
+import {
+  runHash,
+  runLs,
+  runCd,
+  runCp,
+  runMkdir,
+  runUp,
+  runCat,
+  runAdd,
+  runRn,
+  runRm,
+} from "./operations/index.js";
+import { runCompress } from "./operations/compress.js";
 
 const args = process.argv.slice(2);
 
 const usernameArg = args.find((arg) => arg.startsWith("--username="));
 const username = usernameArg ? usernameArg.split("=")[1] : "Anonymous";
-const userHomeDir = os.homedir();
-const currentDir = process.cwd();
 
-process.chdir(userHomeDir);
+let currentDir = os.homedir();
+
+process.chdir(currentDir);
 
 drawBox(`Welcome to the File Manager, ${username}!`, true);
 
@@ -41,12 +51,48 @@ rl.on("line", async (line) => {
   const [command, arg1, arg2] = line.trim().split(" ");
 
   switch (command) {
-    case "up": {
-      process.chdir("..");
+    case "add": {
+      await runAdd(arg1);
+      break;
+    }
+    case "cat": {
+      await runCat(arg1);
+      break;
+    }
+    case "cd": {
+      runCd(arg1);
+      break;
+    }
+    case "compress": {
+      await runCompress(arg1, arg2);
+      break;
+    }
+    case "cp": {
+      await runCp(arg1, arg2);
       break;
     }
     case "ls": {
-      await runLs(path.resolve(currentDir));
+      await runLs(currentDir);
+      break;
+    }
+    case "mkdir": {
+      await runMkdir(arg1);
+      break;
+    }
+    case "mv": {
+      await runCp(arg1, arg2, true);
+      break;
+    }
+    case "rm": {
+      await runRm(arg1);
+      break;
+    }
+    case "rn": {
+      await runRn(arg1, arg2);
+      break;
+    }
+    case "up": {
+      runUp();
       break;
     }
     case "os": {
@@ -72,7 +118,7 @@ rl.on("line", async (line) => {
           break;
         }
         default: {
-          console.log("Invalid option, try again.");
+          console.log("Operation failed");
           console.log(
             "Available options: --EOL, --cups, --homedir, --username, --architecture",
           );
@@ -81,12 +127,7 @@ rl.on("line", async (line) => {
       break;
     }
     case "hash": {
-      try {
-        getHash(path.resolve(process.cwd(), arg1));
-      } catch (err) {
-        console.log("Invalid option, try again.");
-        console.log("Available format: hash <path_to_file>");
-      }
+      runHash(arg1);
       break;
     }
     case ".exit":
@@ -100,14 +141,13 @@ rl.on("line", async (line) => {
   }
 
   console.log("\n");
+  currentDir = process.cwd();
   printCurrentDirectory();
   rl.prompt();
 });
 
-// Handle Ctrl+C (SIGINT)
 process.on("SIGINT", exitHandler);
 
-// Exit function
 function exitHandler() {
   console.log(`\nThank you for using File Manager, ${username}, goodbye!`);
   process.exit(0);
